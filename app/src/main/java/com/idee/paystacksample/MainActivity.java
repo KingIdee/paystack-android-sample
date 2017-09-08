@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
           card number, expiry month, expiry year, card CVC
          */
 
-        Card card = new Card.Builder("5060666666666666666", 8, 2019, "123").build();
+        Card card = new Card.Builder("5060666666666666666", 8, 2019, "123").build();// pin - 1234 OTP-123456
+
         if (!card.isValid())
             return;
 
@@ -48,9 +49,6 @@ public class MainActivity extends AppCompatActivity {
         charge.setCurrency("NGN");
         charge.setAmount(100);
         charge.setEmail("customer@email.com");
-
-
-
         fetchAccessCode();
 
     }
@@ -58,12 +56,11 @@ public class MainActivity extends AppCompatActivity {
     private void fetchAccessCode() {
 
         Map<String,Object> object = new HashMap<>();
-        object.put("reference",charge.getReference());
         object.put("amount", charge.getAmount());
         object.put("email", charge.getEmail());
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"),(new JSONObject(object)).toString());
-        Call<ResponseBody> call = NetworkClass.providesRetrofitRequestClient().fetchAccessCode("Bearer "+PAYSTACK_SECRET_KEY,body);
+        Call<ResponseBody> call = NetworkClass.providesRetrofitRequestClient().fetchAccessCode("Bearer "+YOUR_SECRET_KEY,body);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
@@ -73,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
                     jsonObject = new JSONObject(response.body().string());
                     Log.i(TAG,jsonObject.toString());
                     JSONObject jsonObject1 = new JSONObject(jsonObject.getString("data"));
-                    //Log.d(TAG,jsonObject1.getString("reference"));
                     charge.setAccessCode(jsonObject1.getString("access_code"));
                     charge.setReference(jsonObject1.getString("reference"));
                     chargeCard();
@@ -99,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     private void chargeCard() {
 
         Log.i(TAG,"Preparing to perform transaction on card");
@@ -108,8 +102,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Transaction transaction) {
                 Log.i(TAG,"Successful transaction");
-                Log.i(TAG,transaction.getReference());
-                //TODO: verify here
+                verifyTransaction(transaction.getReference());
                 // This is called only after transaction is deemed successful.
                 // Retrieve the transaction, and send its reference to your server
                 // for verification.
@@ -133,6 +126,37 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void verifyTransaction(String reference){
 
+        Call<ResponseBody> call = NetworkClass.providesRetrofitRequestClient().verifyTransaction("Bearer "+YOUR_SECRET_KEY,reference);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+
+                JSONObject jsonObject;
+                try {
+                    jsonObject = new JSONObject(response.body().string());
+                    JSONObject jsonObject1 = new JSONObject(jsonObject.getString("data"));
+                    if (jsonObject1.getString("status").equals("success")){
+                        Log.i(TAG, "Successful verification");
+                    } else {
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, Throwable t) {
+
+            }
+        });
+
+    }
 
 }

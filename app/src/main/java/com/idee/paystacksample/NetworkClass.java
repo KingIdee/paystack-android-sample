@@ -10,8 +10,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 /**
  * Created by idee on 9/4/17.
@@ -22,6 +24,10 @@ public class NetworkClass {
     interface RetrofitRequestClient {
         @POST("/transaction/initialize")
         Call<ResponseBody> fetchAccessCode(@Header("Authorization") String authorization,@Body RequestBody object);
+
+        @GET("/transaction/verify/{reference}")
+        Call<ResponseBody> verifyTransaction(@Header("Authorization") String authorization, @Path("reference") String ref);
+
     }
 
     private static OkHttpClient providesOkHttpClientBuilder(){

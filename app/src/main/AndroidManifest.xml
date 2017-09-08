@@ -21,7 +21,7 @@
         </activity>
         <meta-data
             android:name="co.paystack.android.PublicKey"
-            android:value="PAYSTACK_PUBLIC KEY"/>
+            android:value="YOUR_PUBLIC_KEY"/>
     </application>
 
 </manifest>
